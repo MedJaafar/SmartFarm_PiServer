@@ -3,13 +3,13 @@ package com.pi_server;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.mongodb.MongoDbFactory;
@@ -32,13 +32,16 @@ public class SmartFarmPiServerApplication {
 	
 	private static final String NGROK_HTTP_COMMAND = "/home/pi/ngrok/ngrok http 8080";
 	private static final String NGROK_CURL_COMMAND = "curl -s localhost:4040/api/tunnels";
+	private static final String CONTEXT_SYSTEM_KEY = "farmSystem";
 	
 	@Autowired 
 	private NextSequenceService nextsequenceService;
 	@Autowired
-	private SystemUrlRepository  urlRepository;
+	private SystemUrlRepository urlRepository;
 	@Autowired
 	private FarmSystemRepository systemRepository;
+	@Autowired
+	private ApplicationContext context;
 	
 	/*/Spring Launcher/	*/ 
 	public static void main(String[] args) throws InterruptedException {
@@ -55,13 +58,20 @@ public class SmartFarmPiServerApplication {
         return mongoTemplate;
     }
 	
+	// Current System storage in Application Context
+	@Bean(CONTEXT_SYSTEM_KEY)
+	public FarmSystem getCurrentSystem() throws IOException {  
+		String sysCode = StringsUtilities.getSystemNameCode();
+		Optional<FarmSystem> systemFarm = systemRepository.findBySystemCode(sysCode);
+		return systemFarm.get();
+	}
+	
 	// Deploy using ngRok after startup -> Store the dynamic URL in MongoDB
 	@EventListener(ApplicationReadyEvent.class)
 	public void ngRokAfterStartup() throws IOException, InterruptedException  {
 		Runtime runtime = Runtime.getRuntime();
 		String line;
 		String outputText ="";
-		String sysCode = StringsUtilities.getSystemNameCode();
 		// Prepare to reader from the output file
 		Process command1 = runtime.exec(NGROK_HTTP_COMMAND);
 		Thread.sleep(5000);  // attend to first command to respond
@@ -78,10 +88,8 @@ public class SmartFarmPiServerApplication {
 		systemUrl.setIdUrl(systemUrlId);
 		systemUrl.setUpdateTime(new Date());
 		systemUrl.setUrl(url);
-		Optional<FarmSystem> systemFarm = systemRepository.findBySystemCode(sysCode);
-		systemFarm.ifPresent(system -> {
-			systemUrl.setSystemId(system.getSystemID());
-		});
+		FarmSystem systemFarm = (FarmSystem) context.getBean(CONTEXT_SYSTEM_KEY);
+		systemUrl.setSystemId(systemFarm.getSystemID());
 		urlRepository.save(systemUrl);
 		command2.waitFor();
 		command1.waitFor();		

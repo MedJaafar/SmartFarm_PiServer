@@ -34,6 +34,8 @@ public class FarmSystem {
 	private String country;
 	@Field
 	private String voieName;
+	@Field
+	private boolean bEnableWatering;
 	
 	@Field
 	private double [] localisation;
@@ -55,7 +57,7 @@ public class FarmSystem {
 	 */
 	@PersistenceConstructor
 	public FarmSystem(String systemCode, String systemName, int buildingNumber, int postalCode, String city,
-			String country, String voieName, double[] localisation) {
+			String country, String voieName, double[] localisation, boolean bEnableWatering) {
 		super();
 		this.systemCode = systemCode;
 		this.systemName = systemName;
@@ -65,6 +67,7 @@ public class FarmSystem {
 		this.country = country;
 		this.voieName = voieName;
 		this.localisation = localisation;
+		this.bEnableWatering = bEnableWatering;
 	}
 	/**
 	 * 
@@ -152,5 +155,12 @@ public class FarmSystem {
 
 	public String getSystemID() {
 		return systemID;
+	}
+	public boolean isbEnableWatering() {
+		return bEnableWatering;
+	}
+	public void setbEnableWatering(boolean bEnableWatering) {
+		this.bEnableWatering = bEnableWatering;
 	}	
+	
 }

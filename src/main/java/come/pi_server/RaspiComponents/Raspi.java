@@ -62,11 +62,11 @@ public class Raspi {
 		 
          humidityADC = inputs[0].getValue();
          brightnessADC = inputs[1].getValue();
-         System.out.println("Humidity : "+humidityADC+" , Brigthness :"+brightnessADC);
-         
          double [] returnArr = new double[2];
-         returnArr[0]=humidityADC;
-         returnArr[1]=brightnessADC;
+         // 1024 -> 100%
+         // val -> x
+         returnArr[0]= 100-((humidityADC*100)/1024);
+         returnArr[1]= (brightnessADC*100)/1024;
          adcProvider.shutdown();
          return returnArr;
 	 }
