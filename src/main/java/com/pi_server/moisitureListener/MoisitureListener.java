@@ -6,7 +6,10 @@ import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
+
+import com.pi.server.RaspiComponents.Raspi;
 import com.pi.server.models.FarmStatus;
+import com.pi.server.models.FarmSystem;
 import com.pi4j.component.lcd.LCDTextAlignment;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.PinState;
@@ -18,7 +21,6 @@ import com.pi4j.io.gpio.trigger.GpioSyncStateTrigger;
 import com.pi_server.mdbServices.NextSequenceService;
 import com.pi_server.mongoRepositories.FarmStatusRepository;
 import com.pi_sever.services.ExportDataService;
-import come.pi_server.RaspiComponents.Raspi;
 
 @Component
 public class MoisitureListener implements Runnable {
@@ -33,20 +35,14 @@ public class MoisitureListener implements Runnable {
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 	final GpioPinDigitalInput sensor = Raspi.gpioController.provisionDigitalInputPin(RaspiPin.GPIO_25);
 
-	public MoisitureListener() {
-
-	}
-
 	@PostConstruct
 	@Override
 	public void run() {
-
 		// Check the state of the sensor in startup
 		PinState pinstate = PinState.LOW;
 		if (sensor.isHigh()) {
 			pinstate = PinState.HIGH;
 		}
-		
 		// setup gpio pins #06 as an output pin and make sure it is LOW at startup
 		Raspi.relay = Raspi.gpioController.provisionDigitalOutputPin(RaspiPin.GPIO_06, "Relay", pinstate);
 		Raspi.lcd.clear();
@@ -58,7 +54,6 @@ public class MoisitureListener implements Runnable {
 			e1.printStackTrace();
 		}
 		Raspi.lcd.clear();
-		
 		for(int i=0; i<Raspi.lcd.getColumnCount(); i++) {
 			Raspi.lcd.write(Raspi.LCD_ROW_1,i, '*');
 			try {
@@ -67,11 +62,11 @@ public class MoisitureListener implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+		if(isAutoWateringEnabled()) {
 		sensor.addListener(new GpioPinListenerDigital() {
 			@Override
 			public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-				// display pin state on console
+				// display pin state on console		
 				Raspi.lcd.clear();
 				Raspi.lcd.write(Raspi.LCD_ROW_1,"Water Detected ",LCDTextAlignment.ALIGN_CENTER);
 				Raspi.lcd.write(Raspi.LCD_ROW_2, "Pump : "+Raspi.relay.getState(),LCDTextAlignment.ALIGN_CENTER);
@@ -83,11 +78,11 @@ public class MoisitureListener implements Runnable {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			}
+		}
 		});
 		
 		sensor.addTrigger(new GpioSyncStateTrigger(Raspi.relay));
-		// sensor.addTrigger(new GpioInverseSyncStateTrigger(Raspi.relay));
+		
 		// Inverser selon RELAY TYPE
 		Raspi.lcd.clear(Raspi.LCD_ROW_2);
 		Raspi.lcd.write(Raspi.LCD_ROW_2, "Listening.. "+Raspi.relay.getState(),LCDTextAlignment.ALIGN_CENTER);
@@ -97,6 +92,17 @@ public class MoisitureListener implements Runnable {
 				return null;
 			}
 		}));
+		} else {
+			Raspi.lcd.clear();
+			Raspi.lcd.write(Raspi.LCD_ROW_1,"Auto Watering",LCDTextAlignment.ALIGN_CENTER);
+			Raspi.lcd.write(Raspi.LCD_ROW_2, "Is Disabled",LCDTextAlignment.ALIGN_CENTER);
+		}
+	}
+	
+	boolean isAutoWateringEnabled() {
+		// Get systemID from Context.
+		FarmSystem contextSystem = (FarmSystem) context.getBean(CONTEXT_SYSTEM_KEY);
+		return contextSystem.isbEnableWatering();
 	}
 }
 

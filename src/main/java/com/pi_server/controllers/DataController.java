@@ -1,13 +1,16 @@
 package com.pi_server.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 import com.pi_server.mdbServices.NextSequenceService;
 
+
+@CrossOrigin(origins="*")
 @RestController
 public class DataController {
 
-	@Autowired 
+	@Autowired
 	NextSequenceService nextsequenceService;
 	
 //	@ResponseBody

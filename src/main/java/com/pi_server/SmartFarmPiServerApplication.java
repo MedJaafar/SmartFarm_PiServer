@@ -45,9 +45,9 @@ public class SmartFarmPiServerApplication {
 	
 	/*/Spring Launcher/	*/ 
 	public static void main(String[] args) throws InterruptedException {
-		SpringApplication.run(SmartFarmPiServerApplication.class, args);	
+			SpringApplication.run(SmartFarmPiServerApplication.class, args);	
 	}
-	/*/Spring Launcher/	*/
+	/*/Spring Launcher/*/
 	
 	// MongoDB CONFIGURATION 
 	@Bean
@@ -95,6 +95,3 @@ public class SmartFarmPiServerApplication {
 		command1.waitFor();		
 	}
 }
-
-
-

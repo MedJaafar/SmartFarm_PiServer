@@ -36,6 +36,8 @@ public class FarmSystem {
 	private String voieName;
 	@Field
 	private boolean bEnableWatering;
+	@Field
+	private int pumpDebit;
 	
 	@Field
 	private double [] localisation;
@@ -161,6 +163,14 @@ public class FarmSystem {
 	}
 	public void setbEnableWatering(boolean bEnableWatering) {
 		this.bEnableWatering = bEnableWatering;
+	}
+	public int getPumpDebit() {
+		return pumpDebit;
+	}
+	public void setPumpDebit(int pumpDebit) {
+		this.pumpDebit = pumpDebit;
 	}	
+	
+	
 	
 }
